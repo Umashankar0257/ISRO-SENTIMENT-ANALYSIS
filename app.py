@@ -99,7 +99,7 @@ def main():
         st.title("📅 Event-Based Sentiment Analysis")
         
         phases = df['phase'].unique()
-        selected_phase = st.selectbox("Select Mission Phase", phases)
+        selected_phase = st.radio("Select Mission Phase", phases, horizontal=True)
         
         phase_df = df[df['phase'] == selected_phase]
         
