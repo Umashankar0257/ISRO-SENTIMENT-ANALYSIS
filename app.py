@@ -147,26 +147,52 @@ def main():
     elif page == "Real-time Prediction":
         st.title("🔮 Real-time Sentiment Prediction")
         
+        st.markdown("""
+        **Note:** This model is trained specifically on opinions related to the ISRO Chandrayaan-3 mission.
+        Inputs unrelated to space, technology, or national development may not yield meaningful results.
+        """)
+        
         text_input = st.text_area("Enter text to analyze", "ISRO made India proud with this mission!")
         model_choice = st.selectbox("Choose Model", ["Logistic Regression", "Naive Bayes", "SVM"])
         
+        # Keywords to check efficiently if the input is relevant
+        def is_relevant(text):
+            keywords = [
+                # Space/Mission specific
+                'isro', 'space', 'moon', 'chandrayaan', 'rocket', 'launch', 'satellite', 'mission', 'india', 
+                'scientist', 'landing', 'orbiter', 'lander', 'rover', 'pragyan', 'vikram', 'orbit', 'nasa', 
+                'planet', 'solar', 'universe',
+                # Economic/Political context
+                'money', 'tax', 'crore', 'budget', 'cost', 'fund', 'economy', 'poverty', 'development', 
+                'wasting', 'worth', 'cheap', 'expensive', 'benefit', 'loss',
+                # Technological/Comparative context
+                'tech', 'technology', 'fail', 'success', 'proud', 'accomplish', 'achievement', 'country', 
+                'world', 'nation', 'global', 'science', 'research', 'compare', 'compete', 'leader', 'behind', 
+                'ahead', 'race', 'countr' # 'countr' to catch country/countries and common typos
+            ]
+            text_lower = text.lower()
+            return any(keyword in text_lower for keyword in keywords)
+
         if st.button("Predict"):
             if text_input:
-                try:
-                    vectorizer, models = load_models()
-                    processed_text = clean_text(text_input)
-                    vectorized_text = vectorizer.transform([processed_text])
-                    prediction = models[model_choice].predict(vectorized_text)[0]
-                    
-                    st.markdown("### Prediction Result")
-                    if prediction == 'positive':
-                        st.success(f"**{prediction.upper()}** 😊")
-                    elif prediction == 'negative':
-                        st.error(f"**{prediction.upper()}** 😠")
-                    else:
-                        st.warning(f"**{prediction.upper()}** 😐")
-                except Exception as e:
-                    st.error(f"Error during prediction: {e}")
+                if not is_relevant(text_input):
+                    st.warning("⚠️ **Out of Context:** This input seems unrelated to the ISRO mission, space exploration, or its socio-economic impact. Please enter text related to the mission.")
+                else:
+                    try:
+                        vectorizer, models = load_models()
+                        processed_text = clean_text(text_input)
+                        vectorized_text = vectorizer.transform([processed_text])
+                        prediction = models[model_choice].predict(vectorized_text)[0]
+                        
+                        st.markdown("### Prediction Result")
+                        if prediction == 'positive':
+                            st.success(f"**{prediction.upper()}** 😊")
+                        elif prediction == 'negative':
+                            st.error(f"**{prediction.upper()}** 😠")
+                        else:
+                            st.warning(f"**{prediction.upper()}** 😐")
+                    except Exception as e:
+                        st.error(f"Error during prediction: {e}")
             else:
                 st.warning("Please enter some text.")
 
